@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="Kursat 'SessizLeylek' Kuyumcu">
+  <meta name="description" content="A simple timer app with dynamic pomodoro technique.">
+  <link rel="stylesheet" href="styles.css">
+  <title>Dynamic Pomodoro</title>
+</head>
+<body>
+    <div class="timer-content">
+        <h1>Dynamic Pomodoro</h1>
+        <div class="timer-panel">
+            <p title="Ratio of focus duration to break duration. Original is 5:1">Focus/Break Ratios*</p>
+            <div class="timer-ratios">
+                <button id="ratio-5" class="ratio-active">5:1</button>
+                <button id="ratio-4" class="ratio-passive">4:1</button>
+                <button id="ratio-3" class="ratio-passive">3:1</button>
+                <button id="ratio-2" class="ratio-passive">2:1</button>
+                <button id="ratio-custom" class="ratio-passive">
+                    <p>Custom</p>
+                    <img class="button-icon" src="res/edit.svg" alt="Edit">
+                </button>
+            </div>
+            <div class="timer-display total-time">
+                <span id="minutes">0</span>:<span id="seconds">00</span>.<span id="milliseconds">0</span>
+            </div>
+            <div class="timer-display current-time">
+                <span id="minutes">0</span>:<span id="seconds">00</span>.<span id="milliseconds">0</span>
+            </div>
+            <div class="progress">
+                <p>Time to Focus!</p>
+                <progress id="progress-bar" max="1000" value="0"></progress>
+            </div>
+            <div class="timer-controls">
+                <button id="start-button">Start</button>
+                <button id="break-button" disabled>Give Break</button>
+                <button id="reset-button" disabled>Reset</button>
+            </div>
+            <div class="history">
+                <div class="history-drawer">
+                    <div class="history-header">
+                        <span class="history-title">History</span>
+                        <div class="history-buttons">
+                        <button class="history-button-download"><img class="button-icon" src="res/download.svg" alt="Download"></button>
+                        <button class="history-button-upload"><img class="button-icon" src="res/upload.svg" alt="Upload"></button>
+                        <span class="history-arrow">▼</span>
+                        </div>
+                    </div>
+
+                    <div class="history-content">
+                        <p>No History Available</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+/* === Dynamic Pomodoro Styles (Voronoi Bubble Background) === */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  color: #fff;
+}
+
+/* === Animated Voronoi / bubble background === */
+body {
+  background: radial-gradient(circle at 50% 50%, #1b002f, #000);
+  position: relative;
+  overflow: hidden;
+}
+
+/* === Color gradient background layer === */
+body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(125deg, #5a3fff, #ff0055, #00ffa2);
+  background-size: 400% 400%;
+  animation: bgShift 25s ease infinite;
+  opacity: 0.4;
+  z-index: 0;
+}
+
+/* === Voronoi-like "bubbles" layer === */
+body::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url("res/voronoi.png");
+  background-repeat: repeat;
+  background-size: 600px 600px;
+  mix-blend-mode: overlay;
+  opacity: 0.35;
+  scale: 1.5;
+
+  /* smooth vertical scroll + horizontal sinus bob */
+  animation:
+    bubbleScroll 120s linear infinite,
+    bubbleBob 10s ease-in-out infinite;
+}
+
+/* === Animations === */
+
+/* seamless vertical drift (endless upward scroll) */
+@keyframes bubbleScroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 -6000px; } /* move up 10 tiles */
+}
+
+/* horizontal sinusoidal oscillation */
+@keyframes bubbleBob {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(1.5%); }
+  75% { transform: translateX(-1.5%); }
+}
+
+/* existing gradient shift animation */
+@keyframes bgShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+
+/* === Centering main content === */
+.timer-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+  z-index: 1;
+  position: relative;
+}
+
+.timer-content h1 {
+  margin-bottom: 1rem;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+/* === Timer Panel === */
+.timer-panel {
+  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.25);
+  max-width: 90vw;
+}
+
+/* === Ratio Buttons === */
+.timer-ratios {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.timer-ratios button {
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid transparent;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.timer-ratios button:hover {
+  transform: scale(1.08);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.timer-ratios .ratio-active {
+  border-color: #00ffa2;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* === Timer Display === */
+.timer-display {
+  font-size: 4rem;
+  letter-spacing: 2px;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.timer-display.current-time  {
+  font-size: 2rem;
+  margin-top: -2rem;
+  color: #bbb;
+}
+
+/* === Progress Bar === */
+progress {
+  width: 100%;
+  height: 10px;
+  border-radius: 6px;
+  overflow: hidden;
+  appearance: none;
+  margin-bottom: 1.5rem;
+}
+
+progress::-webkit-progress-bar {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+progress::-webkit-progress-value {
+  background: linear-gradient(90deg, #00ffa2, #5a3fff);
+}
+
+/* === Control Buttons === */
+.timer-controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+.timer-controls button {
+  padding: 0.6rem 1.4rem;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.timer-controls button:hover {
+  transform: scale(1.08);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.timer-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button {
+    display: inline-flex;       /* make content inline but flexible */
+    align-items: center;        /* vertically center text and icon */
+    gap: 0.5rem;                /* optional spacing between text and icon */
+    color:inherit;
+    font-family: inherit;
+}
+
+button img.button-icon {
+    width: 1em;                 /* or whatever size fits your design */
+    height: 1em;
+    color: inherit;
+}
+
+/* === History wrapper to prevent overflow === */
+.history {
+  max-height: 200px; /* maximum height allowed inside panel */
+  overflow: hidden;
+  margin-top: 1rem; /* spacing from timer buttons */
+}
+
+/* === History Drawer (existing styles mostly unchanged) === */
+.history-drawer {
+  width: 100%; /* fill wrapper width */
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 2px solid transparent;
+  overflow: hidden;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+.history-header:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+.history-title {
+  font-weight: 500;
+}
+
+.history-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.history-buttons button {
+  padding: 0.4rem 0.8rem;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  font-weight: 500;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.history-buttons button:hover {
+  transform: scale(1.08);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.history-arrow {
+  font-size: 0.9rem;
+  transition: transform 0.25s ease;
+}
+
+/* Collapsed content */
+.history-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+  padding: 0 1rem;
+}
+
+/* Expanded content */
+.history-drawer.expanded .history-content {
+  max-height: 150px; /* scrollable content */
+  overflow-y: auto;
+  margin-top: 0.4rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Arrow rotation when expanded */
+.history-drawer.expanded .history-arrow {
+  transform: rotate(180deg);
+}
