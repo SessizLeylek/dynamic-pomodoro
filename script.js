@@ -1,3 +1,71 @@
+// --- AudioScheduler ---
+class AudioScheduler {
+    constructor(audioUrl) {
+        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        this.gainNode = this.audioCtx.createGain();
+        this.gainNode.connect(this.audioCtx.destination);
+        this.audioBuffer = null;
+        this.scheduled = null;
+        this.isMuted = false;
+        this.currentSource = null;
+
+        this.loadAudio(audioUrl);
+    }
+
+    async loadAudio(url) {
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
+        this.audioBuffer = await this.audioCtx.decodeAudioData(arrayBuffer);
+    }
+
+    schedule(delayMs) {
+        if (!this.audioBuffer) return;
+
+        if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+
+        // Cancel any previous schedule
+        if (this.scheduled) this.cancel();
+        if (this.currentSource) {
+            this.currentSource.stop();
+            this.currentSource = null;
+        }
+
+        const timeoutId = setTimeout(() => {
+            const source = this.audioCtx.createBufferSource();
+            source.buffer = this.audioBuffer;
+            source.connect(this.gainNode);
+            source.start();
+            this.scheduled = null;
+            this.currentSource = source;
+        }, delayMs);
+
+        this.scheduled = { cancel: () => clearTimeout(timeoutId) };
+    }
+
+    cancel() {
+        if (this.scheduled) {
+            this.scheduled.cancel();
+            this.scheduled = null;
+            this.currentSource = null;
+        }
+    }
+
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        this.gainNode.gain.value = this.isMuted ? 0 : 1;
+    }
+
+    mute() {
+        this.isMuted = true;
+        this.gainNode.gain.value = 0;
+    }
+
+    unmute() {
+        this.isMuted = false;
+        this.gainNode.gain.value = 1;
+    }
+}
+
 // --- Variables ---
 let ratio = 5; // default ratio
 let timerInterval = null;
@@ -6,11 +74,13 @@ let running = false;
 let elapsed = 0; // milliseconds
 let breakDuration = 0; // milliseconds
 let totalDuration = 0; // milliseconds
+let lastTimestamp = null;
 let historyData = [];
 
 const focusText = "Focusing...";
 const breakText = "On Break";
 const pausedText = "Timer Paused";
+const audioScheduler = new AudioScheduler("res/alert.wav");
 
 // --- Elements ---
 const ratioButtons = document.querySelectorAll(".timer-ratios button");
@@ -27,6 +97,7 @@ const currentTimeMs = currentTimeEl.querySelector("#milliseconds");
 const startButton = document.getElementById("start-button");
 const breakButton = document.getElementById("break-button");
 const resetButton = document.getElementById("reset-button");
+const audioButton = document.getElementById("audio-button");
 const progressText = document.querySelector(".progress p");
 const progressBar = document.getElementById("progress-bar");
 const historyContent = document.querySelector(".history-content");
@@ -105,6 +176,16 @@ function updateTimeText(time, minText, secText, msText) {
     msText.textContent = ms;
 }
 
+function scheduleAudio() {
+    if (state === "Focus") return;
+    
+    let alertTime = elapsed - 10000; // 10 seconds before break ends
+    if (alertTime < 1) alertTime = 1;
+
+    audioScheduler.schedule(alertTime);
+    
+}
+
 function startTimer() {
     if (running) return;
     running = true;
@@ -114,25 +195,32 @@ function startTimer() {
     progressText.textContent = state === "Focus" ? focusText : breakText;
 
     timerInterval = setInterval(() => {
+        const deltaTime = lastTimestamp ? Date.now() - lastTimestamp : 0;
+        lastTimestamp = Date.now();
+
         if (state === "Focus") {
-            elapsed += 25;
+            elapsed += deltaTime;
         } else {
-            elapsed -= 25;
+            elapsed -= deltaTime;
             if (elapsed <= 0) {
                 switchState("Focus");
             }
         }
         updateTimerDisplay();
         updateProgressBar();
-        totalDuration += 25;
+        totalDuration += deltaTime;
     }, 25);
     saveHistory("Start");
+
+    scheduleAudio();
 }
 
 function pauseTimer() {
     if (!running) return;
     running = false;
     clearInterval(timerInterval);
+    audioScheduler.cancel();
+    lastTimestamp = null;
     startButton.textContent = "Start";
     breakButton.disabled = true;
     progressText.textContent = pausedText;
@@ -143,6 +231,8 @@ function resetTimer() {
     // Stop timer
     running = false;
     clearInterval(timerInterval);
+    audioScheduler.cancel();
+    lastTimestamp = null;
 
     // Reset state to Focus
     state = "Focus";
@@ -163,7 +253,6 @@ function resetTimer() {
     saveHistory("Reset");
 }
 
-
 function switchState(newState) {
     state = newState;
     if (state === "Focus") {
@@ -175,6 +264,8 @@ function switchState(newState) {
         breakDuration = elapsed / ratio;
         elapsed = breakDuration;
         breakButton.disabled = true;
+
+        scheduleAudio();
     }
     saveHistory(`Switch to ${state}`);
 }
@@ -203,6 +294,17 @@ breakButton.addEventListener("click", () => {
 
 resetButton.addEventListener("click", () => {
     resetTimer();
+});
+
+audioButton.addEventListener("click", () => {
+    audioScheduler.toggleMute();
+    let audioEnabled = !audioScheduler.isMuted;
+
+    const iconSrc = audioEnabled ? "res/speaker-on.svg" : "res/speaker-off.svg";
+    const iconTitle = audioEnabled ? "Sound is On" : "Sound is Off";
+    const audioIcon = audioButton.querySelector(".button-icon");
+    audioIcon.src = iconSrc;
+    audioIcon.title = iconTitle;
 });
 
 // --- History ---
