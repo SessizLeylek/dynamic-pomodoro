@@ -325,11 +325,13 @@ function renderHistory() {
 }
 
 downloadButton.addEventListener("click", () => {
+    let dateString = new Date().toISOString().replace(/-/g, '').substring(0, 8);
+
     const blob = new Blob([JSON.stringify(historyData, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "history.json";
+    a.download = `pomodoro_history_${dateString}.json`;
     a.click();
     URL.revokeObjectURL(url);
 });
