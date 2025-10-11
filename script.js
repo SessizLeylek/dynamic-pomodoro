@@ -67,7 +67,7 @@ class AudioScheduler {
 }
 
 // --- Variables ---
-let ratio = 5; // default ratio
+let ratio = 50; // default ratio, multiplied with 10
 let timerInterval = null;
 let state = "Focus"; // "Focus" or "Break"
 let running = false;
@@ -110,7 +110,7 @@ progressText.textContent = pausedText;
 ratioButtons.forEach(btn => {
     if (btn !== customButton) {
         btn.addEventListener("click", () => {
-            ratio = parseInt(btn.innerText.split(":")[0]);
+            ratio = 10 * parseInt(btn.innerText.split(":")[0]);
             setActiveRatio(btn);
         });
     }
@@ -122,7 +122,7 @@ customButton.addEventListener("click", (e) => {
     e.stopPropagation();
     if (!customInputActive && (!customInputDefined || customButton.classList.contains("ratio-active"))) {
         customInputActive = true;
-        customButtonText.innerHTML = `<input type="number" id="custom-input" placeholder="Custom" min="1">`;
+        customButtonText.innerHTML = `<input type="number" id="custom-input" placeholder="Custom" min="1" max="20">`;
         const input = document.getElementById("custom-input");
         input.focus();
         
@@ -145,10 +145,10 @@ document.addEventListener("click", (e) => {
 });
 
 function saveCustomRatio(value) {
-    const num = parseInt(value);
+    const num = Math.round(parseFloat(value)*10);
     if (!isNaN(num) && num > 0) {
         ratio = num;
-        customButtonText.innerHTML = `${ratio}:1`;
+        customButtonText.innerHTML = `${ratio/10}:1`;
         customInputDefined = true;
     } else {
         customButtonText.innerHTML = `Custom`;
@@ -261,7 +261,7 @@ function switchState(newState) {
         breakButton.disabled = false;
     } else {
         progressText.textContent = breakText;
-        breakDuration = elapsed / ratio;
+        breakDuration = elapsed / ratio * 10;
         elapsed = breakDuration;
         breakButton.disabled = true;
 
